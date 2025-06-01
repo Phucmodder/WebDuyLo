@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tỏ Tình 3D Effect - Nhanh và Nhiều</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Quicksand:wght@400;500&display=swap');
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #0d021a; /* Dark purple background */
+            overflow: hidden;
+            font-family: 'Quicksand', sans-serif;
+            color: white;
+        }
+
+        #effect-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .floating-element {
+            position: absolute;
+            white-space: nowrap;
+            opacity: 0;
+            /* MODIFIED: Shorter animation duration */
+            animation: fadeInDriftAndFadeOut 6s linear forwards;
+            pointer-events: none;
+        }
+
+        .text-main {
+            font-family: 'Dancing Script', cursive;
+            font-size: 3.5em;
+            color: #ffb3e6;
+            text-shadow:
+                0 0 7px #ff80df,
+                0 0 15px #ff80df,
+                0 0 25px #ff4dd2,
+                0 0 35px #ff4dd2,
+                0 0 45px #ff1ac6,
+                0 0 60px #d9009f;
+        }
+
+        .text-secondary {
+            font-size: 1.3em;
+            color: #ffe6f9;
+            font-style: italic;
+            text-shadow:
+                0 0 5px #ffb3e6,
+                0 0 10px #ff80df,
+                0 0 15px #ff4dd2;
+        }
+
+        .emoji-heart {
+            font-size: 2.5em;
+            color: #ff66cc;
+             text-shadow:
+                0 0 7px #ff80df,
+                0 0 15px #ff4dd2,
+                0 0 25px #ff1ac6;
+        }
+
+        .sparkle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background-color: rgba(255, 220, 255, 0.7);
+            border-radius: 50%;
+            opacity: 0;
+            animation: twinkle 3s infinite ease-in-out;
+            pointer-events: none;
+        }
+
+        /* MODIFIED: Keyframe duration matches elementLifetime/animation duration */
+        @keyframes fadeInDriftAndFadeOut {
+            0% {
+                opacity: 0;
+                transform: translateY(15px) scale(0.9); /* Slightly less initial drift */
+            }
+            15% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            85% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-25px) scale(0.8); /* Slightly less final drift */
+            }
+        }
+
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0; }
+            50% { opacity: Math.random() * 0.5 + 0.3; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="effect-container">
+        <!-- Floating elements and sparkles will be added here by JavaScript -->
+    </div>
+
+    <script>
+        const effectContainer = document.getElementById('effect-container');
+
+        const mainPhrases = [
+            "Anh yêu em!",
+            "Yêu em từ cái nhìn đầu tiên!",
+            "Làm người yêu anh nhé?",
+            "Em là cả thế giới của anh!",
+            "Thích em!",
+            "Anh nhớ em nhiều lắm!",
+            "Làm vợ anh nhé!",
+            "Mình hẹn hò đi!"
+        ];
+
+        const secondaryPhrases = [
+            "\"Mỗi ngày bên em là hạnh phúc nhất!\"",
+            "\"Trái tim anh chỉ hướng về em\"",
+            "\"Thiếu em anh như mất phương hướng\"",
+            "\"Em là định mệnh của anh!\"",
+            "\"Anh đã thích em từ lâu rồi!\"",
+            "\"Cả đời này chỉ muốn ở bên em!\""
+        ];
+
+        const emojis = ["❤️", "♡", "💕", "💖", "✨"]; // Added more emojis for variety
+
+        // MODIFIED: Shorter lifetime
+        const elementLifetime = 6000; // ms (was 8000)
+        // MODIFIED: Potentially allow more elements
+        const maxElements = 50; // (was 40)
+        const maxSparkles = 120; // (was 100) - more sparkles for a busier background
+
+        function getRandomPosition() {
+            const x = Math.random() * 85 + 7.5; // 7.5vw to 92.5vw
+            const y = Math.random() * 80 + 10; // 10vh to 90vh
+            return { x, y };
+        }
+
+        function getRandomDrift() {
+            const driftX = (Math.random() - 0.5) * 50; // -25px to +25px horizontal drift
+            const driftY = (Math.random() - 0.5) * 60; // -30px to +30px vertical drift
+            return { driftX, driftY };
+        }
+
+        function getRandomScale() {
+            return Math.random() * 0.3 + 0.85; // Scale between 0.85 and 1.15
+        }
+
+
+        function createFloatingElement(content, type) {
+            if (effectContainer.childElementCount >= maxElements + maxSparkles) {
+                 // If too many, try removing the oldest non-sparkle element
+                const elements = Array.from(effectContainer.children);
+                const oldestNonSparkle = elements.find(el => !el.classList.contains('sparkle'));
+                if (oldestNonSparkle) {
+                    oldestNonSparkle.remove();
+                } else {
+                    return; // Only sparkles left, or still too many
+                }
+            }
+
+            const element = document.createElement('div');
+            element.classList.add('floating-element');
+            let baseFontSize;
+
+            switch(type) {
+                case 'main':
+                    element.classList.add('text-main');
+                    baseFontSize = 3.2; // Slightly smaller base for main to fit more
+                    break;
+                case 'secondary':
+                    element.classList.add('text-secondary');
+                    baseFontSize = 1.2; // Slightly smaller
+                    break;
+                case 'emoji':
+                    element.classList.add('emoji-heart');
+                    baseFontSize = 2.2; // Slightly smaller
+                    break;
+            }
+            element.textContent = content;
+
+            const { x, y } = getRandomPosition();
+            element.style.left = `${x}vw`;
+            element.style.top = `${y}vh`;
+            element.style.fontSize = (Math.random() * 0.3 + (baseFontSize - 0.15)) + 'em';
+
+            const durationVariation = (Math.random() * 1.0) - 0.5; // -0.5 to +0.5 second variation
+            // MODIFIED: animationDuration matches elementLifetime
+            element.style.animationDuration = (elementLifetime/1000 + durationVariation) + 's';
+
+            effectContainer.appendChild(element);
+
+            setTimeout(() => {
+                if (element.parentElement) {
+                    element.remove();
+                }
+            }, elementLifetime + durationVariation * 1000 + 200); // Shorter buffer
+        }
+
+        function createSparkle() {
+            const sparkle = document.createElement('div');
+            sparkle.classList.add('sparkle');
+            
+            sparkle.style.left = `${Math.random() * 100}vw`;
+            sparkle.style.top = `${Math.random() * 100}vh`;
+            
+            sparkle.style.animationDelay = Math.random() * 2.5 + 's'; // Faster delay changes
+            sparkle.style.animationDuration = (Math.random() * 1 + 1.5) + 's'; // Faster twinkle
+            sparkle.style.opacity = Math.random() * 0.4;
+
+
+            effectContainer.appendChild(sparkle);
+        }
+
+        // Initial batch of sparkles
+        for (let i = 0; i < maxSparkles; i++) {
+            createSparkle();
+        }
+        
+        // MODIFIED: Faster intervals
+        setInterval(() => {
+            const phrase = mainPhrases[Math.floor(Math.random() * mainPhrases.length)];
+            createFloatingElement(phrase, 'main');
+        }, 900); // Was 2500
+
+        setInterval(() => {
+            const phrase = secondaryPhrases[Math.floor(Math.random() * secondaryPhrases.length)];
+            createFloatingElement(phrase, 'secondary');
+        }, 650); // Was 1800
+
+        setInterval(() => {
+            const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+            createFloatingElement(emoji, 'emoji');
+        }, 450); // Was 1200
+
+
+        setInterval(() => {
+            if (document.querySelectorAll('.sparkle').length < maxSparkles * 0.8) {
+                 for (let i = 0; i < 10; i++) createSparkle(); // Add more sparkles if depleted
+            }
+        }, 7000);
+
+    </script>
+
+</body>
+</html>
